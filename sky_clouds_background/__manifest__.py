@@ -5,7 +5,7 @@
     'category': 'Website',
     'author': 'Abdulrahman Fahim',
     'website': 'https://abdulrahmanfahim.github.io',
-    'license': 'OPL-3',
+    'license': 'OPL-1',
     'depends': ['website'],
     'data': [
         'views/views.xml',
