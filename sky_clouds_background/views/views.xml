@@ -20,7 +20,7 @@
                     pointer-events: none;
                 }
 
-                /* ===== GLOSSY OVERLAY FOR 4TH WALL EFFECT ===== */
+                /* ===== GLOSSY OVERLAY ===== */
                 .glossy-overlay {
                     position: fixed;
                     top: 0;
@@ -50,7 +50,6 @@
                     will-change: transform;
                 }
 
-                /* Larger cloud sizes */
                 .cloud-small {
                     width: 120px;
                     height: 60px;
@@ -125,13 +124,11 @@
                     background: transparent !important;
                 }
 
-                /* Navbar and interactive elements above everything */
                 .navbar, header, o_main_navbar, o_menu_sections, o_menu_toggle {
                     position: relative;
                     z-index: 100 !important;
                 }
                 
-                /* Volume control button styling */
                 .sound-control {
                     position: fixed;
                     bottom: 20px;
@@ -159,214 +156,20 @@
 
         <!-- Add sky background and containers -->
         <xpath expr="//body" position="inside">
-            <!-- Sky background image -->
-            <div class="sky-background"></div>
-
-            <!-- Cloud container (will be populated by JS) -->
-            <div id="cloud-container"></div>
-
-            <!-- Rain container (will be populated by JS) -->
-            <div class="rain-container" id="rain-container"></div>
-
-            <!-- Glossy overlay (4th wall effect) -->
-            <div class="glossy-overlay"></div>
-            
-            <!-- Audio element for rain sound -->
-            <audio id="rain-sound" loop preload="auto">
+            <div class="sky-background"/>
+            <div id="cloud-container"/>
+            <div class="rain-container" id="rain-container"/>
+            <div class="glossy-overlay"/>
+            <audio id="rain-sound" loop="loop" preload="auto">
                 <source src="/sky_clouds_background/static/description/rain.mp3" type="audio/mpeg"/>
                 Your browser does not support the audio element.
             </audio>
-            
-            <!-- Volume control button -->
             <button id="sound-control" class="sound-control" title="Toggle Rain Sound">🔊</button>
         </xpath>
 
-        <!-- Add JavaScript for cloud, rain generation, and sound -->
+        <!-- Include external JavaScript -->
         <xpath expr="//body" position="after">
-            <script type="text/javascript">
-            (function() {
-                document.addEventListener('DOMContentLoaded', function() {
-                    var cloudContainer = document.getElementById('cloud-container');
-                    var rainContainer = document.getElementById('rain-container');
-                    var audio = document.getElementById('rain-sound');
-                    var soundControl = document.getElementById('sound-control');
-                    var isMobile = window.innerWidth &lt;= 768;
-                    
-                    // ===== SOUND MANAGEMENT =====
-                    var isSoundEnabled = true;
-                    
-                    // Function to play audio (handles browser autoplay restrictions)
-                    function playAudio() {
-                        if (!audio) return;
-                        
-                        // Set volume to 30% for background ambiance
-                        audio.volume = 0.3;
-                        
-                        // Try to play
-                        var playPromise = audio.play();
-                        
-                        if (playPromise !== undefined) {
-                            playPromise.then(function() {
-                                console.log('Rain sound started playing');
-                                isSoundEnabled = true;
-                                if (soundControl) soundControl.textContent = '🔊';
-                            }).catch(function(error) {
-                                console.log('Autoplay prevented. User interaction needed.');
-                                isSoundEnabled = false;
-                                if (soundControl) soundControl.textContent = '🔇';
-                                
-                                // Add click listener to enable sound on first user interaction
-                                var enableSoundOnInteraction = function() {
-                                    audio.play().then(function() {
-                                        isSoundEnabled = true;
-                                        if (soundControl) soundControl.textContent = '🔊';
-                                    }).catch(function(e) {
-                                        console.log('Still cannot play:', e);
-                                    });
-                                    
-                                    // Remove listeners after first interaction
-                                    document.removeEventListener('click', enableSoundOnInteraction);
-                                    document.removeEventListener('touchstart', enableSoundOnInteraction);
-                                };
-                                
-                                document.addEventListener('click', enableSoundOnInteraction);
-                                document.addEventListener('touchstart', enableSoundOnInteraction);
-                            });
-                        }
-                    }
-                    
-                    // Toggle sound on button click
-                    if (soundControl) {
-                        soundControl.addEventListener('click', function() {
-                            if (isSoundEnabled &amp;&amp; !audio.paused) {
-                                audio.pause();
-                                isSoundEnabled = false;
-                                soundControl.textContent = '🔇';
-                            } else {
-                                audio.play().then(function() {
-                                    isSoundEnabled = true;
-                                    soundControl.textContent = '🔊';
-                                }).catch(function(e) {
-                                    console.log('Playback failed:', e);
-                                });
-                            }
-                        });
-                    }
-                    
-                    // Start playing when page loads (will be blocked by browsers initially)
-                    playAudio();
-                    
-                    // ===== CLOUD MANAGEMENT =====
-                    var cloudSizes = ['small', 'medium', 'large', 'xlarge'];
-                    var clouds = [];
-                    var maxClouds = isMobile ? 6 : 9;
-                    
-                    // Create initial clouds
-                    for (var i = 0; i &lt; maxClouds; i++) {
-                        createCloud(true);
-                    }
-                    
-                    function createCloud(initial) {
-                        var cloud = document.createElement('div');
-                        
-                        // Random size
-                        var sizeIndex = Math.floor(Math.random() * cloudSizes.length);
-                        cloud.className = 'cloud cloud-' + cloudSizes[sizeIndex];
-                        
-                        // Constrain clouds to top 300px
-                        var top = Math.random() * 300;
-                        cloud.style.top = top + 'px';
-                        
-                        // Random horizontal starting position
-                        var left;
-                        var direction;
-                        
-                        if (initial) {
-                            if (Math.random() > 0.3) {
-                                left = Math.random() * 100;
-                            } else {
-                                left = -30 + Math.random() * 20;
-                            }
-                            direction = Math.random() > 0.5 ? 'right' : 'left';
-                        } else {
-                            if (Math.random() > 0.5) {
-                                left = -40 + Math.random() * 20;
-                                direction = 'right';
-                            } else {
-                                left = 120 + Math.random() * 20;
-                                direction = 'left';
-                            }
-                        }
-                        
-                        cloud.style.left = left + '%';
-                        
-                        // Random speed
-                        var speed;
-                        switch(sizeIndex) {
-                            case 0: speed = 0.025 + Math.random() * 0.018; break;
-                            case 1: speed = 0.018 + Math.random() * 0.014; break;
-                            case 2: speed = 0.012 + Math.random() * 0.01; break;
-                            case 3: speed = 0.008 + Math.random() * 0.007; break;
-                        }
-                        
-                        cloud.style.opacity = 0.7 + Math.random() * 0.25;
-                        cloudContainer.appendChild(cloud);
-                        
-                        clouds.push({
-                            element: cloud,
-                            left: left,
-                            direction: direction || (Math.random() > 0.5 ? 'right' : 'left'),
-                            speed: speed,
-                            sizeIndex: sizeIndex
-                        });
-                    }
-                    
-                    // ===== RAIN GENERATION =====
-                    if (rainContainer) {
-                        rainContainer.innerHTML = '';
-                        var raindropCount = isMobile ? 150 : 300;
-                        
-                        for (var i = 0; i &lt; raindropCount; i++) {
-                            var raindrop = document.createElement('div');
-                            raindrop.className = 'raindrop';
-                            raindrop.style.left = Math.random() * 100 + '%';
-                            raindrop.style.top = (Math.random() * 100) + '%';
-                            var duration = isMobile ? 1.5 + Math.random() * 1.5 : 2 + Math.random() * 2;
-                            raindrop.style.animation = 'rain ' + duration + 's linear infinite';
-                            raindrop.style.animationDelay = (Math.random() * 3) + 's';
-                            var height = isMobile ? 12 + Math.random() * 8 : 18 + Math.random() * 12;
-                            raindrop.style.height = height + 'px';
-                            rainContainer.appendChild(raindrop);
-                        }
-                    }
-                    
-                    // ===== ANIMATION LOOP =====
-                    function animateClouds() {
-                        for (var i = clouds.length - 1; i &gt;= 0; i--) {
-                            var cloud = clouds[i];
-                            
-                            if (cloud.direction === 'right') {
-                                cloud.left += cloud.speed;
-                            } else {
-                                cloud.left -= cloud.speed;
-                            }
-                            
-                            cloud.element.style.left = cloud.left + '%';
-                            
-                            if (cloud.left > 140 || cloud.left &lt; -40) {
-                                cloud.element.remove();
-                                clouds.splice(i, 1);
-                                createCloud(false);
-                            }
-                        }
-                        
-                        requestAnimationFrame(animateClouds);
-                    }
-                    
-                    animateClouds();
-                });
-            })();
-            </script>
+            <script type="text/javascript" src="/sky_clouds_background/static/src/js/clouds.js"/>
         </xpath>
     </template>
 </odoo>
