@@ -130,6 +130,29 @@
                     position: relative;
                     z-index: 100 !important;
                 }
+                
+                /* Volume control button styling */
+                .sound-control {
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    z-index: 1000;
+                    background: rgba(0,0,0,0.6);
+                    color: white;
+                    border: none;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    cursor: pointer;
+                    font-size: 20px;
+                    transition: all 0.3s ease;
+                    backdrop-filter: blur(5px);
+                }
+                
+                .sound-control:hover {
+                    background: rgba(0,0,0,0.8);
+                    transform: scale(1.1);
+                }
                 ]]>
             </style>
         </xpath>
@@ -147,16 +170,88 @@
 
             <!-- Glossy overlay (4th wall effect) -->
             <div class="glossy-overlay"></div>
+            
+            <!-- Audio element for rain sound -->
+            <audio id="rain-sound" loop preload="auto">
+                <source src="/sky_clouds_background/static/description/rain.mp3" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+            
+            <!-- Volume control button -->
+            <button id="sound-control" class="sound-control" title="Toggle Rain Sound">🔊</button>
         </xpath>
 
-        <!-- Add JavaScript for cloud and rain generation -->
+        <!-- Add JavaScript for cloud, rain generation, and sound -->
         <xpath expr="//body" position="after">
             <script type="text/javascript">
                 <![CDATA[
                 document.addEventListener('DOMContentLoaded', function() {
                     const cloudContainer = document.getElementById('cloud-container');
                     const rainContainer = document.getElementById('rain-container');
+                    const audio = document.getElementById('rain-sound');
+                    const soundControl = document.getElementById('sound-control');
                     const isMobile = window.innerWidth <= 768;
+                    
+                    // ===== SOUND MANAGEMENT =====
+                    let isSoundEnabled = true;
+                    let audioContext = null;
+                    
+                    // Function to play audio (handles browser autoplay restrictions)
+                    function playAudio() {
+                        if (!audio) return;
+                        
+                        // Set volume to 30% for background ambiance
+                        audio.volume = 0.3;
+                        
+                        // Try to play
+                        const playPromise = audio.play();
+                        
+                        if (playPromise !== undefined) {
+                            playPromise.then(() => {
+                                console.log('Rain sound started playing');
+                                isSoundEnabled = true;
+                                soundControl.textContent = '🔊';
+                            }).catch(error => {
+                                console.log('Autoplay prevented. User interaction needed.');
+                                isSoundEnabled = false;
+                                soundControl.textContent = '🔇';
+                                
+                                // Add click listener to enable sound on first user interaction
+                                const enableSoundOnInteraction = function() {
+                                    audio.play().then(() => {
+                                        isSoundEnabled = true;
+                                        soundControl.textContent = '🔊';
+                                    }).catch(e => console.log('Still cannot play:', e));
+                                    
+                                    // Remove listeners after first interaction
+                                    document.removeEventListener('click', enableSoundOnInteraction);
+                                    document.removeEventListener('touchstart', enableSoundOnInteraction);
+                                };
+                                
+                                document.addEventListener('click', enableSoundOnInteraction);
+                                document.addEventListener('touchstart', enableSoundOnInteraction);
+                            });
+                        }
+                    }
+                    
+                    // Toggle sound on button click
+                    if (soundControl) {
+                        soundControl.addEventListener('click', function() {
+                            if (isSoundEnabled && !audio.paused) {
+                                audio.pause();
+                                isSoundEnabled = false;
+                                soundControl.textContent = '🔇';
+                            } else {
+                                audio.play().then(() => {
+                                    isSoundEnabled = true;
+                                    soundControl.textContent = '🔊';
+                                }).catch(e => console.log('Playback failed:', e));
+                            }
+                        });
+                    }
+                    
+                    // Start playing when page loads (will be blocked by browsers initially)
+                    playAudio();
                     
                     // ===== CLOUD MANAGEMENT =====
                     const cloudSizes = ['small', 'medium', 'large', 'xlarge'];
