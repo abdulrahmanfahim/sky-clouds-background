@@ -17,6 +17,7 @@
     },
     'images': [
         'static/description/cloud.png',
+        'static/description/background.jpg',
     ],
     'installable': True,
     'application': False,
