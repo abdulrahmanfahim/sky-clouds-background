@@ -173,7 +173,7 @@
             
             <!-- Audio element for rain sound -->
             <audio id="rain-sound" loop preload="auto">
-                <source src="/sky_clouds_background/static/description/rain.mp3" type="audio/mpeg">
+                <source src="/sky_clouds_background/static/description/rain.mp3" type="audio/mpeg"/>
                 Your browser does not support the audio element.
             </audio>
             
@@ -184,17 +184,16 @@
         <!-- Add JavaScript for cloud, rain generation, and sound -->
         <xpath expr="//body" position="after">
             <script type="text/javascript">
-                <![CDATA[
+            (function() {
                 document.addEventListener('DOMContentLoaded', function() {
-                    const cloudContainer = document.getElementById('cloud-container');
-                    const rainContainer = document.getElementById('rain-container');
-                    const audio = document.getElementById('rain-sound');
-                    const soundControl = document.getElementById('sound-control');
-                    const isMobile = window.innerWidth <= 768;
+                    var cloudContainer = document.getElementById('cloud-container');
+                    var rainContainer = document.getElementById('rain-container');
+                    var audio = document.getElementById('rain-sound');
+                    var soundControl = document.getElementById('sound-control');
+                    var isMobile = window.innerWidth &lt;= 768;
                     
                     // ===== SOUND MANAGEMENT =====
-                    let isSoundEnabled = true;
-                    let audioContext = null;
+                    var isSoundEnabled = true;
                     
                     // Function to play audio (handles browser autoplay restrictions)
                     function playAudio() {
@@ -204,24 +203,26 @@
                         audio.volume = 0.3;
                         
                         // Try to play
-                        const playPromise = audio.play();
+                        var playPromise = audio.play();
                         
                         if (playPromise !== undefined) {
-                            playPromise.then(() => {
+                            playPromise.then(function() {
                                 console.log('Rain sound started playing');
                                 isSoundEnabled = true;
-                                soundControl.textContent = '🔊';
-                            }).catch(error => {
+                                if (soundControl) soundControl.textContent = '🔊';
+                            }).catch(function(error) {
                                 console.log('Autoplay prevented. User interaction needed.');
                                 isSoundEnabled = false;
-                                soundControl.textContent = '🔇';
+                                if (soundControl) soundControl.textContent = '🔇';
                                 
                                 // Add click listener to enable sound on first user interaction
-                                const enableSoundOnInteraction = function() {
-                                    audio.play().then(() => {
+                                var enableSoundOnInteraction = function() {
+                                    audio.play().then(function() {
                                         isSoundEnabled = true;
-                                        soundControl.textContent = '🔊';
-                                    }).catch(e => console.log('Still cannot play:', e));
+                                        if (soundControl) soundControl.textContent = '🔊';
+                                    }).catch(function(e) {
+                                        console.log('Still cannot play:', e);
+                                    });
                                     
                                     // Remove listeners after first interaction
                                     document.removeEventListener('click', enableSoundOnInteraction);
@@ -237,15 +238,17 @@
                     // Toggle sound on button click
                     if (soundControl) {
                         soundControl.addEventListener('click', function() {
-                            if (isSoundEnabled && !audio.paused) {
+                            if (isSoundEnabled &amp;&amp; !audio.paused) {
                                 audio.pause();
                                 isSoundEnabled = false;
                                 soundControl.textContent = '🔇';
                             } else {
-                                audio.play().then(() => {
+                                audio.play().then(function() {
                                     isSoundEnabled = true;
                                     soundControl.textContent = '🔊';
-                                }).catch(e => console.log('Playback failed:', e));
+                                }).catch(function(e) {
+                                    console.log('Playback failed:', e);
+                                });
                             }
                         });
                     }
@@ -254,29 +257,29 @@
                     playAudio();
                     
                     // ===== CLOUD MANAGEMENT =====
-                    const cloudSizes = ['small', 'medium', 'large', 'xlarge'];
-                    const clouds = [];
-                    const maxClouds = isMobile ? 6 : 9;
+                    var cloudSizes = ['small', 'medium', 'large', 'xlarge'];
+                    var clouds = [];
+                    var maxClouds = isMobile ? 6 : 9;
                     
                     // Create initial clouds
-                    for (let i = 0; i < maxClouds; i++) {
+                    for (var i = 0; i &lt; maxClouds; i++) {
                         createCloud(true);
                     }
                     
-                    function createCloud(initial = false) {
-                        const cloud = document.createElement('div');
+                    function createCloud(initial) {
+                        var cloud = document.createElement('div');
                         
                         // Random size
-                        const sizeIndex = Math.floor(Math.random() * cloudSizes.length);
-                        cloud.className = `cloud cloud-${cloudSizes[sizeIndex]}`;
+                        var sizeIndex = Math.floor(Math.random() * cloudSizes.length);
+                        cloud.className = 'cloud cloud-' + cloudSizes[sizeIndex];
                         
                         // Constrain clouds to top 300px
-                        const top = Math.random() * 300;
+                        var top = Math.random() * 300;
                         cloud.style.top = top + 'px';
                         
                         // Random horizontal starting position
-                        let left;
-                        let direction;
+                        var left;
+                        var direction;
                         
                         if (initial) {
                             if (Math.random() > 0.3) {
@@ -298,7 +301,7 @@
                         cloud.style.left = left + '%';
                         
                         // Random speed
-                        let speed;
+                        var speed;
                         switch(sizeIndex) {
                             case 0: speed = 0.025 + Math.random() * 0.018; break;
                             case 1: speed = 0.018 + Math.random() * 0.014; break;
@@ -321,17 +324,17 @@
                     // ===== RAIN GENERATION =====
                     if (rainContainer) {
                         rainContainer.innerHTML = '';
-                        const raindropCount = isMobile ? 150 : 300;
+                        var raindropCount = isMobile ? 150 : 300;
                         
-                        for (let i = 0; i < raindropCount; i++) {
-                            const raindrop = document.createElement('div');
+                        for (var i = 0; i &lt; raindropCount; i++) {
+                            var raindrop = document.createElement('div');
                             raindrop.className = 'raindrop';
                             raindrop.style.left = Math.random() * 100 + '%';
                             raindrop.style.top = (Math.random() * 100) + '%';
-                            const duration = isMobile ? 1.5 + Math.random() * 1.5 : 2 + Math.random() * 2;
-                            raindrop.style.animation = `rain ${duration}s linear infinite`;
+                            var duration = isMobile ? 1.5 + Math.random() * 1.5 : 2 + Math.random() * 2;
+                            raindrop.style.animation = 'rain ' + duration + 's linear infinite';
                             raindrop.style.animationDelay = (Math.random() * 3) + 's';
-                            const height = isMobile ? 12 + Math.random() * 8 : 18 + Math.random() * 12;
+                            var height = isMobile ? 12 + Math.random() * 8 : 18 + Math.random() * 12;
                             raindrop.style.height = height + 'px';
                             rainContainer.appendChild(raindrop);
                         }
@@ -339,8 +342,8 @@
                     
                     // ===== ANIMATION LOOP =====
                     function animateClouds() {
-                        for (let i = clouds.length - 1; i >= 0; i--) {
-                            const cloud = clouds[i];
+                        for (var i = clouds.length - 1; i &gt;= 0; i--) {
+                            var cloud = clouds[i];
                             
                             if (cloud.direction === 'right') {
                                 cloud.left += cloud.speed;
@@ -350,7 +353,7 @@
                             
                             cloud.element.style.left = cloud.left + '%';
                             
-                            if (cloud.left > 140 || cloud.left < -40) {
+                            if (cloud.left > 140 || cloud.left &lt; -40) {
                                 cloud.element.remove();
                                 clouds.splice(i, 1);
                                 createCloud(false);
@@ -362,7 +365,7 @@
                     
                     animateClouds();
                 });
-                ]]>
+            })();
             </script>
         </xpath>
     </template>
